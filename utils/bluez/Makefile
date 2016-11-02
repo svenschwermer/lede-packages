@@ -72,6 +72,7 @@ define Package/bluez-daemon/conffiles
 /etc/bluetooth/input.conf
 /etc/bluetooth/proximity.conf
 /etc/config/bluetooth
+/etc/dbus-1/system.d/bluetooth.conf
 endef
 
 CONFIGURE_ARGS += \
@@ -142,8 +143,6 @@ define Package/bluez-daemon/install
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/bluetooth/obexd $(1)/usr/bin/
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_DATA) ./files/bluetooth.config $(1)/etc/config/bluetooth
-	$(INSTALL_DIR) $(1)/etc/dbus-1/system.d/
-	$(INSTALL_DATA) ./files/bluetooth.dbus $(1)/etc/dbus-1/system.d/bluetooth.conf
 	$(INSTALL_DIR) $(1)/etc/bluetooth
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/src/main.conf $(1)/etc/bluetooth/main.conf
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/profiles/network/network.conf $(1)/etc/bluetooth/network.conf
@@ -151,6 +150,8 @@ define Package/bluez-daemon/install
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/profiles/proximity/proximity.conf $(1)/etc/bluetooth/proximity.conf
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/bluetoothd.init $(1)/etc/init.d/bluetoothd
+	$(INSTALL_DIR) $(1)/etc/dbus-1/system.d
+	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/etc/dbus-1/system.d/bluetooth.conf $(1)/etc/dbus-1/system.d/bluetooth.conf
 endef
 
 $(eval $(call BuildPackage,bluez-examples))
