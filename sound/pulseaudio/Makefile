@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=pulseaudio
 PKG_VERSION:=9.0
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=http://freedesktop.org/software/pulseaudio/releases/
@@ -31,6 +31,7 @@ define Package/pulseaudio/Default
   SECTION:=sound
   CATEGORY:=Sound
   DEPENDS:=+libspeexdsp +libsndfile +libltdl +libpthread \
+	+bluez-libs +dbus +sbc \
 	+librt +alsa-lib +libopenssl +libwrap +libcap $(ICONV_DEPENDS) $(INTL_DEPENDS)
   TITLE:=Network sound server
   MAINTAINER:=Peter Wagner <tripolar@gmx.at>
@@ -57,6 +58,7 @@ define Package/pulseaudio-daemon/conffiles
 /etc/pulse/daemon.conf
 /etc/pulse/default.pa
 /etc/pulse/system.pa
+/etc/dbus-1/system.d/pulseaudio-system.conf
 endef
 
 define Package/pulseaudio-tools
@@ -81,25 +83,24 @@ CONFIGURE_ARGS += \
 	--with-access-group=audio \
 	--with-database=simple \
 	--enable-alsa \
-	--disable-hal \
+	--disable-hal-compat \
 	--disable-gconf \
 	--disable-nls \
 	--disable-manpages \
 	--enable-oss-output \
 	--disable-oss-wrapper \
-	--disable-samplerate \
+	--with-speex \
 	--disable-per-user-esound-socket \
 	--disable-solaris \
-	--disable-gtk2 \
 	--disable-glib2 \
 	--disable-jack \
 	--disable-asyncns \
 	--disable-lirc \
-	--disable-bluez \
+	--enable-bluez5 \
 	--disable-udev \
 	--without-fftw \
 	--disable-avahi \
-	--disable-dbus \
+	--enable-dbus \
 	--without-soxr
 
 CONFIGURE_VARS += \
@@ -135,7 +136,8 @@ define Package/pulseaudio-daemon/install
 		$(1)/usr/bin \
 		$(1)/usr/lib \
 		$(1)/usr/lib/pulseaudio \
-		$(1)/usr/lib/pulse-$(PKG_VERSION)/modules
+		$(1)/usr/lib/pulse-$(PKG_VERSION)/modules \
+		$(1)/etc/dbus-1/system.d
 
 	$(INSTALL_BIN) \
 		$(PKG_INSTALL_DIR)/usr/bin/pulseaudio \
@@ -146,7 +148,11 @@ define Package/pulseaudio-daemon/install
 		$(1)/etc/init.d/pulseaudio
 
 	$(INSTALL_DATA) \
-		$(PKG_INSTALL_DIR)/etc/pulse/* \
+		$(PKG_INSTALL_DIR)/etc/pulse/client.conf $(PKG_INSTALL_DIR)/etc/pulse/default.pa \
+		$(1)/etc/pulse
+
+	$(INSTALL_DATA) \
+		./files/daemon.conf ./files/system.pa \
 		$(1)/etc/pulse
 
 	$(CP) \
@@ -165,6 +171,9 @@ define Package/pulseaudio-daemon/install
 		$(PKG_INSTALL_DIR)/usr/lib/pulse-$(PKG_VERSION)/modules/module*.so \
 		$(1)/usr/lib/pulse-$(PKG_VERSION)/modules/
 
+	$(CP) \
+		./files/pulseaudio-system.dbus \
+		$(1)/etc/dbus-1/system.d/pulseaudio-system.conf
 endef
 
 define Package/pulseaudio-tools/install
